@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<plugin-upgrade xmlns="http://www.urbancode.com/UpgradeXMLSchema_v1" xmlns:server="http://www.urbancode.com/PluginServerXMLSchema_v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <migrate to-version="4">
+    <migrate-command name="Add Comments"/>
+    <migrate-command name="Create Issue"/>
+    <migrate-command name="Update Issue"/>
+    <migrate-command name="Check Status"/>
+    <migrate-command name="Publish Issue Report"/>
+    <migrate-command name="Get Custom Property"/>
+	<migrate-command name="Get BMC Ref No"/>
+    <migrate-command name="Check Ready to Deploy"/>
+  </migrate>
+
+</plugin-upgrade>

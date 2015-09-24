@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.urbancode.com/PluginXMLSchema_v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <header>
+    <identifier id="com.cppib.core.urbancode.plugin.JiraCPPIB" name="JIRA_Plugin_CPPIB" version="4"/>
+    <description>Jira Integration</description>
+    <tag>CPPIB/Jira Plugin CPPIB</tag>
+  </header>
+  <!-- ==================================== -->
+  <!--  Add Comments                         -->
+  <!-- ==================================== -->
+  <step-type name="Add Comments">
+    <description>Add Comments from the current changelog to matching JIRA Issues</description>
+    <properties>
+      <property name="issueIds" required="true">
+        <property-ui type="textAreaBox" label="issueIds" default-value="${p:ticket_id}" description="A comma-separated list of issueIds to update"/>
+      </property>
+      <property name="commentBody" required="true">
+        <property-ui type="textAreaBox" label="Comment" default-value="uDeploy found this Issue referenced in a deployment" description="The template to use for adding a comment to Jira Issues."/>
+      </property>
+      <property name="failMode" required="true">
+        <property-ui type="selectBox" label="Fail Mode" description="What should be done when an unknown Issue ID is found."/>
+        <value label="Warn Only">WARN_ONLY</value>
+        <value label="Fail Fast">FAIL_FAST</value>
+        <value label="Fail on no Updates">FAIL_ON_NO_UPDATES</value>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui type="textBox" default-value="${p:jira_url}"  label="JIRA Base URL" description="The JIRA server URL"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui type="textBox" default-value="" label="Issue URL" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}."/>
+      </property>
+      <property name="username" required="false">
+        <property-ui type="textBox" default-value="${p:jira_user}" label="User Name" description="The user name to be used to connect to the JIRA server."/>
+      </property>
+      <property name="password" required="false">
+        <property-ui type="secureBox" default-value=""  label="Password" description="The password to be used to connect to the JIRA server."/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui type="textAreaBox" default-value="${p:jira_password}" label="Password Script" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui type="selectBox" default-value="5.2.7" label="Server Version" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)."/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="add_comments.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>
+  </step-type>
+  <!-- ==================================== -->
+  <!--  create Issue                         -->
+  <!-- ==================================== -->
+  <step-type name="Create Issue">
+    <description>Create a new Issue in a JIRA Bug Tracker</description>
+    <properties>
+      <property name="projectKey" required="true">
+        <property-ui type="textBox" label="Project Key" description="The project key in Jira"/>
+      </property>
+      <property name="issueTypeName" required="true">
+        <property-ui type="textBox" label="Issue Type" description="The name of the issue type to create."/>
+      </property>
+      <property name="assignee" required="true">
+        <property-ui type="textBox" label="Assignee" description="The assignee for the new Issue. An assignee of -1 will use Jira's automatic assignment."/>
+      </property>
+      <property name="summary" required="true">
+        <property-ui type="textBox" label="Summary" description="The summary for this Issue"/>
+      </property>
+      <property name="environment" required="false">
+        <property-ui type="textBox" label="Environment" description="The environment of this Issue"/>
+      </property>
+      <property name="issueDescription" required="true">
+        <property-ui type="textAreaBox" label="Issue Description" description="The description of this Issue"/>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui type="textBox" default-value="${p:jira_url}"  label="JIRA Base URL" description="The JIRA server URL"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui type="textBox" default-value="" label="Issue URL" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}."/>
+      </property>
+      <property name="username" required="false">
+        <property-ui type="textBox" default-value="${p:jira_user}"  label="User Name" description="The user name to be used to connect to the JIRA server."/>
+      </property>
+      <property name="password" required="false">
+        <property-ui type="secureBox" default-value="" label="Password" description="The password to be used to connect to the JIRA server."/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui type="textAreaBox" default-value="${p:jira_password}" label="Password Script" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui type="selectBox" default-value="5.2.7" label="Server Version" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)."/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="create_issue.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>
+  </step-type>
+  <!-- ==================================== -->
+  <!--  Update Issue                         -->
+  <!-- ==================================== -->
+  <step-type name="Update Issue">
+    <description>Update JIRA Issues</description>
+    <properties>
+      <property name="issueIds" required="true">
+        <property-ui type="textAreaBox" default-value="${p:ticket_id}" label="issueIds" description="A comma-separated list of issueIds to update"/>
+      </property>
+      <property name="actionName" required="true">
+        <property-ui type="textBox" label="Action Name" default-value="Resolve Issue" description="The Action which should be performed upon the issues. (e.g. 'Resolve Issue' or 'Close Issue')"/>
+      </property>
+      <property name="additionalComment" required="false">
+        <property-ui type="textAreaBox" label="Additional Comment" description="Enter any comments that you would like to be added to the Issue when it is updated. Leave the field blank if you do not want to add any comments! You can use scripts in this field"/>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui type="textBox" default-value="${p:jira_url}" label="JIRA Base URL" description="The JIRA server URL"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui type="textBox" default-value="" label="Issue URL" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}." />
+      </property>
+      <property name="username" required="false">
+        <property-ui type="textBox" default-value="${p:jira_user}" label="User Name" description="The user name to be used to connect to the JIRA server." />
+      </property>
+      <property name="password" required="false">
+        <property-ui type="secureBox" default-value="" label="Password" description="The password to be used to connect to the JIRA server."/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui type="textAreaBox" default-value="${p:jira_password}" label="Password Script" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui type="selectBox" default-value="5.2.7"  label="Server Version" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)."/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="update_issue.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>
+  </step-type>
+  <!-- ==================================== -->
+  <!--  check status                         -->
+  <!-- ==================================== -->
+  <step-type name="Check Status">
+    <description>Check JIRA Issues</description>
+    <properties>
+      <property name="issueIds" required="true">
+        <property-ui type="textAreaBox" default-value="${p:ticket_id}" label="issueIds" description="A comma-separated list of issueIds to update"/>
+      </property>
+      <property name="statusName" required="true">
+        <property-ui type="textBox" label="Status Name" default-value="Resolved" description="The status to that we expect the issue to be in."/>
+      </property>
+      <property name="failMode" required="true">
+        <property-ui type="selectBox" label="Fail Mode" description="What should be done when an unknown Issue ID is found."/>
+        <value label="Warn Only">WARN_ONLY</value>
+        <value label="Fail Fast">FAIL_FAST</value>
+        <value label="Fail on All Failure">FAIL_ON_NO_UPDATES</value>
+        <value label="Fail on Any failure">FAIL_ON_ANY_FAILURE</value>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui type="textBox" default-value="${p:jira_url}" label="JIRA Base URL" description="The JIRA server URL"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui type="textBox" default-value="" label="Issue URL" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}."/>
+      </property>
+      <property name="username" required="false">
+        <property-ui type="textBox" default-value="${p:jira_user}" label="User Name" description="The user name to be used to connect to the JIRA server."/>
+      </property>
+      <property name="password" required="false">
+        <property-ui type="secureBox" default-value="" label="Password" description="The password to be used to connect to the JIRA server."/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui type="textAreaBox" default-value="${p:jira_password}" label="Password Script" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui type="selectBox" default-value="5.2.7"  label="Server Version" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)."/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="check_status.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>
+  </step-type>
+  
+  <!-- ==================================== -->
+  <!--  get Custom Field value              -->
+  <!-- ==================================== -->
+  <step-type name="Get Custom Property">
+    <description>Retrieve the value of a custom field</description>
+    <properties>
+      <property name="issueIds" required="true">
+        <property-ui type="textAreaBox"  label="issueIds"  default-value="${p:ticket_id}" description="A comma-separated list of issueIds to update"/>
+      </property>
+      <property name="customFieldName" required="true">
+        <property-ui type="textBox" label="Custom Attribute" default-value="" description="The custom attribute identifier (ie. customfield_XXXXX)"/>
+      </property>
+      <property name="failMode" required="true">
+        <property-ui type="selectBox" label="Fail Mode" description="What should be done when the attribute does not exist?"/>
+        <value label="Warn Only">WARN_ONLY</value>
+        <value label="Fail Fast">FAIL_FAST</value>
+        <value label="Fail on All Failure">FAIL_ON_NO_UPDATES</value>
+        <value label="Fail on Any failure">FAIL_ON_ANY_FAILURE</value>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui type="textBox" default-value="${p:jira_url}"  label="JIRA Base URL" description="The JIRA server URL"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui type="textBox" default-value="" label="Issue URL" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}."/>
+      </property>
+      <property name="username" required="false">
+        <property-ui type="textBox" default-value="${p:jira_user}"  label="User Name" description="The user name to be used to connect to the JIRA server."/>
+      </property>
+      <property name="password" required="false">
+        <property-ui type="secureBox" default-value=""  label="Password"  description="The password to be used to connect to the JIRA server."/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui type="textAreaBox" default-value="${p:jira_password}"  label="Password Script" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui type="selectBox" default-value="5.2.7" label="Server Version" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)." />
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="get_custom_field_value.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>    
+  </step-type>
+  
+  <!-- ==================================== -->
+  <!--  get BMC_Ref_No field value          -->
+  <!-- ==================================== -->
+  <step-type name="Get BMC Ref No">
+    <description>Retrieve the value of the custom field "BMC Ref No"</description>
+    <properties>
+      <property name="issueIds" required="true">
+        <property-ui default-value="${p:ticket_id}" description="A comma-separated list of issueIds to update" label="issueIds" type="textAreaBox"/>
+      </property>
+      <property name="customFieldName" required="true">
+        <property-ui default-value="customfield_10112" description="The custom attribute identifier (ie. customfield_XXXXX)" label="Custom Attribute" type="textBox"/>
+      </property>
+      <property name="failMode" required="true">
+        <property-ui description="What should be done when the attribute does not exist?" label="Fail Mode" type="selectBox"/>
+        <value label="Warn Only">WARN_ONLY</value>
+        <value label="Fail Fast">FAIL_FAST</value>
+        <value label="Fail on All Failure">FAIL_ON_NO_UPDATES</value>
+        <value label="Fail on Any failure">FAIL_ON_ANY_FAILURE</value>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui default-value="${p:jira_url}" description="The JIRA server URL" label="JIRA Base URL" type="textBox"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui default-value="" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}." label="Issue URL" type="textBox"/>
+      </property>
+      <property name="username" required="false">
+        <property-ui default-value="${p:jira_user}" description="The user name to be used to connect to the JIRA server." label="User Name" type="textBox"/>
+      </property>
+      <property name="password" required="false">
+        <property-ui default-value="" description="The password to be used to connect to the JIRA server." label="Password" type="secureBox"/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui default-value="${p:jira_password}" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here." label="Password Script" type="textAreaBox"/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui default-value="5.2.7" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)." label="Server Version" type="selectBox"/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="get_bmc_ref_no.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>    
+  </step-type>
+  
+  <!-- ==================================== -->
+  <!--  check ready to deploy              -->
+  <!-- ==================================== -->
+  <step-type name="Check Ready to Deploy">
+    <description>Check if the issue is ready to deploy</description>
+    <properties>
+      <property name="issueIds" required="false">
+        <property-ui default-value="${p:ticket_id}" description="A comma-separated list of issueIds to update" label="issueIds" type="textAreaBox"/>
+      </property>
+      <property name="failMode" required="true">
+        <property-ui default-value="FAIL_ON_ANY_FAILURE" description="What should be done when the attribute does not exist?" label="Fail Mode" type="selectBox"/>
+        <value label="Fail on Any failure">FAIL_ON_ANY_FAILURE</value>
+        <value label="Warn Only">WARN_ONLY</value>
+        <value label="Fail Fast">FAIL_FAST</value>
+        <value label="Fail on All Failure">FAIL_ON_NO_UPDATES</value>        
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui default-value="${p:jira_url}" description="The JIRA server URL" label="JIRA Base URL" type="textBox"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui default-value="" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}." label="Issue URL" type="textBox"/>
+      </property>
+      <property name="username" required="false">
+        <property-ui default-value="${p:jira_user}" description="The user name to be used to connect to the JIRA server." label="User Name" type="textBox"/>
+      </property>
+      <property name="password" required="false">
+        <property-ui default-value="" description="The password to be used to connect to the JIRA server." label="Password" type="secureBox"/>
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui default-value="${p:jira_password}" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here." label="Password Script" type="textAreaBox"/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui default-value="5.2.7" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)." label="Server Version" type="selectBox"/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="can_deploy.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>    
+  </step-type>
+  
+  <!-- ==================================== -->
+  <!--  Publish Issue Report                         -->
+  <!-- ==================================== -->
+  <!-- TODO doesn't support making a html report -->
+  <!-- TODO doesn't support checking dependency changelogs -->
+  <step-type name="Publish Issue Report">
+    <description>Create a report of JIRA issues from the current changelog</description>
+    <properties>
+      <property name="outputFile" required="true">
+        <property-ui type="textBox" label="Output File" description="The file to output the report to."/>
+      </property>
+      <property name="issueIds" required="true">
+        <property-ui type="textAreaBox"  label="issueIds" default-value="${p:ticket_id}" description="A comma-separated list of issueIds to update"/>
+      </property>
+      <property name="serverUrl" required="true">
+        <property-ui type="textBox" default-value="${p:jira_url}" label="JIRA Base URL" description="The JIRA server URL"/>
+      </property>
+      <property name="serverIssueUrl" required="false">
+        <property-ui type="textBox" default-value=""  label="Issue URL" description="This field provides a template which will be used throughout uDeploy to generate links from issues directly to the Issue page within Jira. The value '${issueId}' will be replaced in the template with the Issue id of the associated Issue. Please provide a url template such as http://bugs.company.com/browse/${issueId}."/>
+      </property>
+      <property name="username" required="false">
+        <property-ui type="textBox" default-value="${p:jira_user}"  label="User Name" description="The user name to be used to connect to the JIRA server."/>
+      </property>
+      <property name="password" required="false">
+        <property-ui type="secureBox" default-value="" label="Password" description="The password to be used to connect to the JIRA server." />
+      </property>
+      <property name="passwordScript" required="false">
+        <property-ui type="textAreaBox" default-value="${p:jira_password}"  label="Password Script" description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+      </property>
+      <property name="serverVersion" required="true">
+        <property-ui type="selectBox" default-value="5.2.7"  label="Server Version" description="Specify the version of your JIRA server, chose the highest version available without going over your current version (versions 3.9 and above have been reported to work with the 3.11 integration)."/>
+        <value label="3.6.5">3.6.5</value>
+        <value label="3.11">3.11</value>
+        <value label="4.3-rc1">4.3-rc1</value>
+        <value label="5.2.7">5.2.7</value>
+      </property>
+    </properties>
+    <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+    <command program="${GROOVY_HOME}/bin/groovy">
+      <arg value="-cp"/>
+      <arg path="classes:lib/axis-1.4.jar:lib/axis-ant-1.4.jar:lib/axis-jaxrpc-1.4.jar:lib/axis-saaj-1.4.jar:lib/axis-wsdl4j-1.5.1.jar:lib/commons-logging.jar:lib/commons-discovery-0.2.jar"/>
+      <arg file="issue_report.groovy"/>
+      <arg file="${PLUGIN_INPUT_PROPS}"/>
+      <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+    </command>
+  </step-type>
+</plugin>
